@@ -269,7 +269,7 @@ Level.prototype.step = function(dt) {
 
       // Add a new enemy with the blueprint and override
       this.board.add(new Enemy(enemy,override));
-        console.log("new enemy when :"+this.t)
+        // console.log("new enemy when :"+this.t)
       // Increment the start time by the gap
       curShip[0] += curShip[2];
     }

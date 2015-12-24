@@ -8,7 +8,7 @@ var sprites = {
  enemy_blueR: { sx: 704 , sy: 0, rw: 155, rh: 154, frames: 1, w: 39, h: 38 },
  enemy_blueL: { sx: 859 , sy: 0, rw: 155, rh: 154, frames: 1, w: 39, h: 38 },
  enemy_boss: { sx: 1015 , sy: 0, rw: 211, rh: 293, frames: 1, w: 211, h: 293 },
- enemy_misiile: { sx: 1225 , sy: 0, rw: 56, rh: 54, frames: 1, w: 14, h: 14 },
+ enemy_missile: { sx: 1225 , sy: 0, rw: 56, rh: 54, frames: 1, w: 14, h: 14 },
  explosion: { sx: 0, sy: 243, rw: 64, rh: 64, frames: 12, w: 32, h: 32 }
 };
 
@@ -49,20 +49,20 @@ var startGame = function() {
 
 var level1 = [
  // 开始时间,   结束时间, 生成飞机的间隔,  类型,   重载位置函数
-  // [ 0,      4000,  500, 'step' ],
-  // [ 6000,   13000, 600, 'ltr' ],
-  // [ 10000,  16000, 550, 'circle' ],
-  // [ 17800,  20000, 650, 'straight', { x: 200 } ],
-  // [ 18200,  20000, 650, 'straight', { x: 400 } ],
-  // [ 18200,  20000, 650, 'straight', { x: 600 } ],
-  // [ 22000,  25000, 600, 'wiggle', { x: 200 }],
-  // [ 22000,  25000, 600, 'wiggle', { x: 600 }],
-  // [ 25000,  28000, 600, 'horizonR'],  
-  // [ 25000,  28000, 600, 'horizonL'],
-  // [ 29000,  31000, 800, 'ltr',{x: 300} ],
-  // [ 30000,  32000, 800, 'ltr',{x: 500} ],
-  [ 0,  300, 400, 'boss',{x:400,sy:100}],
-  [ 400,  600, 600, 'boss',{x:100,sy:100}]
+  [ 0,      4000,  500, 'step' ],
+  [ 6000,   13000, 600, 'ltr' ],
+  [ 10000,  16000, 550, 'circle' ],
+  [ 17800,  20000, 650, 'straight', { x: 200 } ],
+  [ 18200,  20000, 650, 'straight', { x: 400 } ],
+  [ 18200,  20000, 650, 'straight', { x: 600 } ],
+  [ 22000,  25000, 600, 'wiggle', { x: 200 }],
+  [ 22000,  25000, 600, 'wiggle', { x: 600 }],
+  [ 25000,  28000, 600, 'horizonR'],  
+  [ 25000,  28000, 600, 'horizonL'],
+  [ 29000,  31000, 800, 'ltr',{x: 300} ],
+  [ 30000,  32000, 800, 'ltr',{x: 500} ],
+  [ 31000,  31300, 400, 'boss',{x:400,sy:100,lastfire:0}],
+  [ 31300,  31600, 600, 'boss',{x:100,sy:100,lastfire:0}]
 ];
 
 
@@ -241,13 +241,27 @@ Enemy.prototype.baseParameters = { A: 0, B: 0, C: 0, D: 0,
                                    E: 0, F: 0, G: 0, H: 0,
                                    t: 0 };
 Enemy.prototype.step = function(dt) {
-  this.t += dt;
-  
+  this.t += dt;//0.03
+  // var fire = Math.round((this.t)*100)/100
   if(this.sy != 0){
     if(this.y > this.sy){
       this.E = 0;
       this.B = 80;
     }
+   // console.log("this time is "+this.t%0.3);
+   if((this.t-this.lastfire) > 0.3){
+       // console.log("fire!");
+      var mvx = 200*Math.sin(this.t);
+      var mvy = Math.sqrt(40000-mvx*mvx);
+      if(Math.sin(this.t-Math.PI/2)>=0){
+
+      }else{
+              mvy = -mvy;
+      }
+       // console.log("vx is "+ mvx +" vy is "+mvy)
+      this.board.add(new EnemyMissile(this.x+113,this.y+176,mvx,mvy));  
+      this.lastfire = this.t;
+      }
   }
   this.vx = this.A + this.B * Math.sin(this.C * this.t + this.D);
   this.vy = this.E + this.F * Math.sin(this.G * this.t + this.H);
@@ -268,6 +282,7 @@ Enemy.prototype.step = function(dt) {
        this.board.remove(this);
   }
 };
+
 // function count(){console.log(this.number)}
 Enemy.prototype.hit = function(damage) {
   this.health -= damage;
@@ -277,6 +292,29 @@ Enemy.prototype.hit = function(damage) {
       this.board.add(new Explosion(this.x + this.w/2, 
                                    this.y + this.h/2));
     }
+  }
+};
+//boss的炮弹 
+var EnemyMissile = function(x,y,vx,vy) {
+  this.setup('enemy_missile',{vx: 0,vy: 0,damage: 10 });
+  this.x = x - this.w/2;
+  this.y = y - this.h; 
+  this.vx = vx;
+  this.vy= vy;
+};
+
+EnemyMissile.prototype = new Sprite();
+EnemyMissile.prototype.type = OBJECT_PLAYER_PROJECTILE;
+
+EnemyMissile.prototype.step = function(dt)  {
+  this.y += this.vy * dt;
+  this.x += this.vx * dt;
+  var collision = this.board.collide(this,OBJECT_PLAYER);
+  if(collision) {
+    collision.hit(this.damage);
+    this.board.remove(this);
+  } else if(this.y > Game.height) { 
+      this.board.remove(this); 
   }
 };
 
