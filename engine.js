@@ -1,11 +1,12 @@
 var Game = (function() {                                                                  
   var boards = [];
-
+  
   // Game Initialization
   this.initialize = function(canvasElementId,sprite_data,callback) {
     this.canvas = document.getElementById(canvasElementId);
     this.width = this.canvas.width;
     this.height= this.canvas.height;
+    this.pause = false;
     //设置上下文
     this.ctx = this.canvas.getContext && this.canvas.getContext('2d');
     if(!this.ctx) { return alert("Please upgrade your browser to play"); }
@@ -20,7 +21,9 @@ var Game = (function() {
   // Handle Input
   var KEY_CODES = { 37:'left', 39:'right', 32 :'fire' ,38:'up',40:'down'};
   this.keys = {};
-
+  this.ChangeStatus = function(){
+    pause = !pause;
+  }
   this.setupInput = function() {
     window.addEventListener('keydown',function(e) {
       if(KEY_CODES[(e.keyCode||e.which)]) {
@@ -36,13 +39,25 @@ var Game = (function() {
        e.preventDefault();
       }
     },false);
+
+    window.addEventListener('keypress',function(e) {
+      // console.log("click "+ e.which);
+      if((e.keyCode||e.which) == 112) {
+        Game.ChangeStatus();
+        if(!pause){
+          Game.loop();
+        }
+      }
+    },false);
   };
 
   // Game Loop
   this.loop = function() { 
     var dt = 30 / 1000;
     // 每隔30ms调用一次函数
-    setTimeout(Game.loop,30);
+    if(!pause){
+      setTimeout(Game.loop,30);
+    }
 
     for(var i=0,len = boards.length;i<len;i++) {
       if(boards[i]) { 
@@ -152,8 +167,13 @@ var GameBoard = function() {
     for(var i=0,len=this.removed.length;i<len;i++) {
       var idx = this.objects.indexOf(this.removed[i]);
       if(idx != -1) {
-        this.cnt[this.removed[i].type]--;
+        var obj = this.removed[i];
+        this.cnt[obj.type]--;
         this.objects.splice(idx,1);
+        // if(obj.sy!=null){
+        //   console.log("idx.sy is "+obj.sy);
+        //   showDialog();
+        // }
       }
     }
   };

@@ -61,7 +61,7 @@ var level1 = [
   [ 25000,  28000, 600, 'horizonL'],
   [ 29000,  31000, 800, 'ltr',{x: 300} ],
   [ 30000,  32000, 800, 'ltr',{x: 500} ],
-  [ 31000,  31300, 400, 'boss',{x:400,sy:100,lastfire:0}],
+  [ 31000,  31300, 400, 'boss',{x:400,sy:100,lastfire:0,health:300}],
   [ 31300,  31600, 600, 'boss',{x:100,sy:100,lastfire:0}]
 ];
 
@@ -165,6 +165,7 @@ var PlayerShip = function() {
   this.y = Game.height - 10 - this.h;
 
   this.step = function(dt) {
+     
     if(Game.keys['left']) { this.vx = -this.maxVel; }
     else if(Game.keys['right']) { this.vx = this.maxVel; }
     else { this.vx = 0; }
@@ -259,7 +260,7 @@ Enemy.prototype.step = function(dt) {
               mvy = -mvy;
       }
        // console.log("vx is "+ mvx +" vy is "+mvy)
-      this.board.add(new EnemyMissile(this.x+113,this.y+176,mvx,mvy));  
+      this.board.add(new EnemyMissile(this.x+98,this.y+113,mvx,mvy));  
       this.lastfire = this.t;
       }
   }
@@ -332,6 +333,5 @@ Explosion.prototype.step = function(dt) {
     this.board.remove(this);
   }
 };
-
 
 
